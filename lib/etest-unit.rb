@@ -18,6 +18,7 @@ module Etest
       if defined?(ActiveRecord)
         ActiveRecord::Base.transaction do
           super
+          raise ActiveRecord::Rollback, "Rollback test transaction"
         end
       else
         super
