@@ -6,6 +6,25 @@ require File.dirname(__FILE__) + "/module_ext"
 require "test/unit/ui/console/testrunner"
 
 module Etest
+  class TestRunner < Test::Unit::UI::Console::TestRunner
+    def setup_mediator
+      super
+      @mediator = Etest::TestRunnerMediator.new(@suite)
+    end
+  end
+
+  class TestRunnerMediator < Test::Unit::UI::TestRunnerMediator
+    def run
+      if defined?(ActiveRecord)
+        ActiveRecord::Base.transaction do
+          super
+        end
+      else
+        super
+      end
+    end
+  end
+  
   class TestCase < Test::Unit::TestCase
     def self.etest=(etest)
       include @etest = etest
@@ -21,7 +40,7 @@ module Etest
   def self.run(etest)
     test_case_klass = Class.new(TestCase)
     test_case_klass.etest = etest
-    Test::Unit::UI::Console::TestRunner.new(test_case_klass).start
+    TestRunner.new(test_case_klass).start
   end
 end
 
