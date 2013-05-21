@@ -5,16 +5,23 @@ Dir.chdir(DIRNAME)
 ETEST_TEST=true
 
 require "etest-unit"
+require "expectation"
 
 # ---------------------------------------------------------------------
 
+$etest_stats = Hash.new(0)
+
 module String::Etest
-  def test_camelize
+  def test_underscore
+    $etest_stats[:underscore] += 1
+
     assert_equal "x", "X".underscore
     assert_equal "xa_la_nder", "XaLaNder".underscore
   end
 
-  def test_underscore
+  def test_camelize
+    $etest_stats[:camelize] += 1
+
     assert_equal "X", "x".camelize
     assert_equal "XaLaNder", "xa_la_nder".camelize
   end
@@ -22,16 +29,32 @@ end
 
 module Fixnum::Etest
   def test_success
-    $etests_did_run = true
+    $etest_stats[:success] += 1
+
     assert true
   end
 end
 
-String.etest
+begin
+  String.etest
+  Fixnum.etest
+  expect! $etest_stats => { :underscore => 1, :camelize => 1, :success => 1 }
 
-$etests_did_run = false
-Fixnum.etest
-exit(0) if $etests_did_run
+  Fixnum.etest
+  expect! $etest_stats => { :underscore => 1, :camelize => 1, :success => 2 }
 
-STDERR.puts "Etests didn't run"
-exit(1)
+  String.etest :test_camelize, :test_underscore
+  expect! $etest_stats => { :underscore => 2, :camelize => 2, :success => 2 }
+
+  begin
+    String.etest :test_camelize, :nosuchtest
+    expect! false
+  rescue Etest::Error
+  end
+
+  expect! $etest_stats => { :underscore => 2, :camelize => 2, :success => 2 }
+rescue ArgumentError
+  STDERR.puts "#{$!}; in #{$!.backtrace.first}"
+  exit 1
+end
+

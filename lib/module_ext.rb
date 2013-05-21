@@ -12,9 +12,9 @@ end
 class Module
   #
   # reloads the module, and runs the module's etests.
-  def etest
+  def etest(*args)
     reload if respond_to?(:reload)
-    ::Etest.run self.const_get("Etest")
+    ::Etest.run self.const_get("Etest"), *args
   end
 
   #

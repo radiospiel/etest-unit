@@ -8,6 +8,7 @@ GEM
       debugger-ruby_core_source (~> 1.2.1)
     debugger-linecache (1.2.0)
     debugger-ruby_core_source (1.2.2)
+    expectation (0.3.1)
     rake (10.0.4)
     test-unit (2.5.5)
 
@@ -16,5 +17,6 @@ PLATFORMS
 
 DEPENDENCIES
   debugger
+  expectation
   rake
   test-unit
