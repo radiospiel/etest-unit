@@ -1,15 +1,15 @@
-load "#{File.dirname __FILE__}/vex/gem.rake"
+$:.unshift File.expand_path("../lib", __FILE__)
 
-task :default => :test
+require "bundler/setup"
 
-task :test do
-	sh "ruby test/test.rb"
+require "rake/testtask"
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/*_test.rb'
+  test.verbose = true
 end
 
-task :rcov do
-  sh "cd test; rcov -o ../coverage -x ruby/.*/gems -x ^test.rb test.rb"
-end
+# Add "rake release and rake install"
+Bundler::GemHelper.install_tasks
 
-task :rdoc do
-  sh "rdoc -o doc/rdoc"
-end
+task :default => [:test, :rdoc]

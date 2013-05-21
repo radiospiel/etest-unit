@@ -47,7 +47,7 @@ class Module
   #
   def reload
     Module::Reloader.reload_file("#{to_s.underscore}.rb") || begin
-      dlog("Cannot reload module #{self}")
+      STDERR.puts("Warning: Cannot reload module #{self}")
       false
     end
   end
