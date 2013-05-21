@@ -48,19 +48,15 @@ module EtestUnit
     end
   end
   
-  class TestCase < Test::Unit::TestCase
-    module ClassMethods
-      def etest=(etest)
-        @etest = etest
-        include etest
-      end
-      
-      attr :tests, true
+  module TestCase
+    def etest=(etest)
+      @etest = etest
+      include etest
     end
-
-    extend ClassMethods
     
-    def self.suite
+    attr :tests, true
+    
+    def suite
       suite_creator = EtestUnit::TestSuiteCreator.new(self)
       suite_creator.tests = tests
       suite = suite_creator.create
@@ -70,7 +66,8 @@ module EtestUnit
   end
   
   def self.run(etest, *tests)
-    test_case_klass = Class.new(TestCase)
+    test_case_klass = Class.new(Test::Unit::TestCase)
+    test_case_klass.extend EtestUnit::TestCase
     
     test_case_klass.etest = etest
     test_case_klass.tests = tests
