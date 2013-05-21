@@ -26,7 +26,7 @@ end
 
 Gem::Specification.new do |gem|
   gem.name     = "etest-unit"
-  gem.version  = Etest::VERSION
+  gem.version  = EtestUnit::VERSION
 
   gem.author   = "radiospiel"
   gem.email    = "eno@radiospiel.org"

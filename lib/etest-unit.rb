@@ -5,13 +5,13 @@ require File.dirname(__FILE__) + "/module_ext"
 
 require "test/unit/ui/console/testrunner"
 
-module Etest
+module EtestUnit
   class Error < ArgumentError; end
   
   class TestRunner < Test::Unit::UI::Console::TestRunner
     def setup_mediator
       super
-      @mediator = Etest::TestRunnerMediator.new(@suite)
+      @mediator = EtestUnit::TestRunnerMediator.new(@suite)
     end
   end
 
@@ -61,7 +61,7 @@ module Etest
     extend ClassMethods
     
     def self.suite
-      suite_creator = Etest::TestSuiteCreator.new(self)
+      suite_creator = EtestUnit::TestSuiteCreator.new(self)
       suite_creator.tests = tests
       suite = suite_creator.create
       suite.name = @etest.name

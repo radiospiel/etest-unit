@@ -49,7 +49,7 @@ begin
   begin
     String.etest :test_camelize, :nosuchtest
     expect! false
-  rescue Etest::Error
+  rescue EtestUnit::Error
   end
 
   expect! $etest_stats => { :underscore => 2, :camelize => 2, :success => 2 }
