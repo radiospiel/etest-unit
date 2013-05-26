@@ -11,7 +11,7 @@ class String
   def camelize(first_letter = :upper)
     camelized = gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
     if first_letter == :lower
-      camelized.gsub!(/^./) { $1.downcase }
+      camelized.gsub!(/^./, &:downcase)
     end
     camelized
   end
