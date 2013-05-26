@@ -25,6 +25,11 @@ module String::Etest
     assert_equal "X", "x".camelize
     assert_equal "XaLaNder", "xa_la_nder".camelize
   end
+
+  def test_camelize_lower
+    assert_equal "x", "x".camelize(:lower)
+    assert_equal "xaLaNder", "xa_la_nder".camelize(:lower)
+  end
 end
 
 module Fixnum::Etest

@@ -8,7 +8,11 @@ class String
       downcase
   end
 
-  def camelize
-    gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+  def camelize(first_letter = :upper)
+    camelized = gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+    if first_letter == :lower
+      camelized.gsub!(/^./) { $1.downcase }
+    end
+    camelized
   end
 end
