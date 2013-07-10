@@ -14,7 +14,10 @@ class Module
   # reloads the module, and runs the module's etests.
   def etest(*args)
     reload if respond_to?(:reload)
-    ::EtestUnit.run self.const_get("Etest"), *args
+    etests = const_get("Etest")
+    etests.reload if etests.respond_to?(:reload)
+
+    ::EtestUnit.run etests, *args
   end
 
   #
