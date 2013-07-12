@@ -7,19 +7,46 @@ module Kernel
   end
 end
 
+module EtestReloader
+  extend self
+  
+  def reload(module_name)
+    reload_file("#{module_name.underscore}.rb") || begin
+      STDERR.puts("Warning: Cannot reload module #{module_name}")
+      false
+    end
+  end
+
+  private
+  
+  def reload_file(file)
+    begin
+      load(file) && file
+    rescue LoadError
+      nfile = file.gsub(/\/[^\/]+\.rb/, ".rb")
+      nfile != file && reload_file(nfile)
+    end
+  end
+end
+
 # 
 # TDD helpers for modules. 
 class Module
   #
   # reloads the module, and runs the module's etests.
   def etest(*args)
-    reload if respond_to?(:reload)
-    etests = const_get("Etest")
-    etests.reload if etests.respond_to?(:reload)
-
+    EtestReloader.reload(name)
+    if etests = const_get("Etest")
+      EtestReloader.reload(etests.name)
+    end
+  
     ::EtestUnit.run etests, *args
   end
-
+  
+  def reload
+    EtestReloader.reload(name)
+  end
+  
   #
   # returns all instances of a module
   def instances                                           #:nodoc:
@@ -37,32 +64,5 @@ class Module
     end
   rescue NameError, LoadError
     nil
-  end
-  
-  #
-  # tries to reload the source file for this module. THIS IS A DEVELOPMENT
-  # helper, don't try to use it in production mode!
-  #
-  # Limitations:
-  #
-  # To reload a module with a name of "X::Y" we try to load (in that order) 
-  # "x/y.rb", "x.rb"
-  #
-  def reload
-    Module::Reloader.reload_file("#{to_s.underscore}.rb") || begin
-      STDERR.puts("Warning: Cannot reload module #{self}")
-      false
-    end
-  end
-
-  module Reloader                                       #:nodoc:
-    def self.reload_file(file)
-      begin
-        load(file) && file
-      rescue LoadError
-        nfile = file.gsub(/\/[^\/]+\.rb/, ".rb")
-        nfile != file && reload_file(nfile)
-      end
-    end
   end
 end
