@@ -16,16 +16,6 @@ module EtestUnit
   end
 
   class TestRunnerMediator < Test::Unit::UI::TestRunnerMediator
-    def run
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.transaction do
-          super
-          raise ActiveRecord::Rollback, "Rollback test transaction"
-        end
-      else
-        super
-      end
-    end
   end
   
   class TestSuiteCreator < Test::Unit::TestSuiteCreator
@@ -62,6 +52,17 @@ module EtestUnit
       suite = suite_creator.create
       suite.name = @etest.name
       suite
+    end
+    
+    def run_test
+      if defined?(ActiveRecord)
+        ActiveRecord::Base.transaction do
+          super
+          raise ActiveRecord::Rollback, "Rollback test transaction"
+        end
+      else
+        super
+      end
     end
   end
   
