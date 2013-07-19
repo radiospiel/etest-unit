@@ -21,6 +21,38 @@ module EtestUnit
   class TestSuiteCreator < Test::Unit::TestSuiteCreator
     attr :tests, true
     
+    module ActiveRecordAdditions
+      def set_log_level(level)
+        return unless ActiveRecord::Base.logger
+        
+        r = ActiveRecord::Base.logger.level
+        ActiveRecord::Base.logger.level = level
+        r
+      end
+      
+      def run_test(test, result)
+        old_log_level = set_log_level(Logger::ERROR)
+        ActiveRecord::Base.transaction do
+          set_log_level(old_log_level)
+
+          super(test, result)
+
+          set_log_level(Logger::ERROR)
+          raise ActiveRecord::Rollback, "Rollback test transaction"
+        end
+      ensure
+        set_log_level(old_log_level)
+      end
+    end
+    
+    def create
+      suite = super
+      if defined?(::ActiveRecord)
+        suite.extend ActiveRecordAdditions
+      end
+      suite
+    end
+    
     private
 
     def collect_test_names
@@ -52,17 +84,6 @@ module EtestUnit
       suite = suite_creator.create
       suite.name = @etest.name
       suite
-    end
-    
-    def run_test
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.transaction do
-          super
-          raise ActiveRecord::Rollback, "Rollback test transaction"
-        end
-      else
-        super
-      end
     end
   end
   
