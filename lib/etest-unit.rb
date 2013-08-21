@@ -35,18 +35,8 @@ module EtestUnit
         ActiveRecord::Base.transaction do
           begin
             set_log_level(old_log_level)
-
-            if defined?(Mocha)
-              mocha_setup
-            end
-          
             super(test, result)
           ensure
-            if defined?(Mocha)
-              mocha_verify
-              mocha_teardown
-            end
-
             set_log_level(Logger::ERROR)
             raise ActiveRecord::Rollback, "Rollback test transaction"
           end
@@ -55,12 +45,21 @@ module EtestUnit
         set_log_level(old_log_level)
       end
     end
-    
+
+    module MochaAdditions
+      def run_test(test, result)
+        test.mocha_setup
+        super(test, result)
+      ensure
+        test.mocha_verify
+        test.mocha_teardown
+      end
+    end
+
     def create
       suite = super
-      if defined?(::ActiveRecord)
-        suite.extend ActiveRecordAdditions
-      end
+      suite.extend ActiveRecordAdditions if defined?(::ActiveRecord)
+      suite.extend MochaAdditions if defined?(::Mocha)
       suite
     end
     
