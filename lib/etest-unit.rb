@@ -33,12 +33,23 @@ module EtestUnit
       def run_test(test, result)
         old_log_level = set_log_level(Logger::ERROR)
         ActiveRecord::Base.transaction do
-          set_log_level(old_log_level)
+          begin
+            set_log_level(old_log_level)
 
-          super(test, result)
+            if defined?(Mocha)
+              mocha_setup
+            end
+          
+            super(test, result)
+          ensure
+            if defined?(Mocha)
+              mocha_verify
+              mocha_teardown
+            end
 
-          set_log_level(Logger::ERROR)
-          raise ActiveRecord::Rollback, "Rollback test transaction"
+            set_log_level(Logger::ERROR)
+            raise ActiveRecord::Rollback, "Rollback test transaction"
+          end
         end
       ensure
         set_log_level(old_log_level)
