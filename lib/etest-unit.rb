@@ -39,19 +39,34 @@ module EtestUnit
         r
       end
       
-      def run_test(test, result)
+      def in_transaction(&block)
         old_log_level = set_log_level(Logger::ERROR)
         ActiveRecord::Base.transaction do
           begin
             set_log_level(old_log_level)
-            super(test, result)
+            yield
           ensure
             set_log_level(Logger::ERROR)
             raise ActiveRecord::Rollback, "Rollback test transaction"
           end
         end
+      rescue
+        STDERR.puts "Could not run etest in transaction: #{$!}"
       ensure
         set_log_level(old_log_level)
+      end
+      
+      def run_test(test, result)
+        running_tests_in_transaction = nil
+        
+        in_transaction do
+          running_tests_in_transaction = true
+          super(test, result)
+        end
+
+        if !running_tests_in_transaction
+          super(test, result)
+        end
       end
     end
 
