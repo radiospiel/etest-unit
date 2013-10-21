@@ -21,7 +21,10 @@ module EtestReloader
   
   def reload_file(file)
     begin
-      load(file) && file
+      if load(file)
+        STDERR.puts("Loaded #{file}")
+        file
+      end
     rescue LoadError
       nfile = file.gsub(/\/[^\/]+\.rb/, ".rb")
       nfile != file && reload_file(nfile)
@@ -45,6 +48,7 @@ class Module
   
   def reload
     EtestReloader.reload(name)
+    self
   end
   
   #
