@@ -13,17 +13,15 @@ class Module
   #
   # reloads the module, and runs the module's etests.
   def etest(*args)
-    reload
-    if etests = const_get("Etest") rescue nil
-      etests.reload
-    end
-  
+    etests = const_get("Etest")
+    modules = [ self, etests ]
+    Reloader.reload *modules
     ::EtestUnit.run etests, *args
   end
   
   module Reloader
-    def self.reload(mod)
-      source_files = mod.source_files
+    def self.reload(*mods)
+      source_files = mods.map(&:source_files).flatten.uniq
 
       # Skip files that live in .gem and .rvm directories.
       source_files.reject! do |source_file|
