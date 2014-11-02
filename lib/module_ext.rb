@@ -7,50 +7,59 @@ module Kernel
   end
 end
 
-module EtestReloader
-  extend self
-  
-  def reload(module_name)
-    reload_file("#{module_name.underscore}.rb") || begin
-      STDERR.puts("Warning: Cannot reload module #{module_name}")
-      false
-    end
-  end
-
-  private
-  
-  def reload_file(file)
-    begin
-      if load(file)
-        STDERR.puts("Loaded #{file}")
-        file
-      end
-    rescue LoadError
-      nfile = file.gsub(/\/[^\/]+\.rb/, ".rb")
-      nfile != file && reload_file(nfile)
-    end
-  end
-end
-
 # 
 # TDD helpers for modules. 
 class Module
   #
   # reloads the module, and runs the module's etests.
   def etest(*args)
-    EtestReloader.reload(name)
-    if etests = const_get("Etest")
-      EtestReloader.reload(etests.name)
+    reload
+    if etests = const_get("Etest") rescue nil
+      etests.reload
     end
   
     ::EtestUnit.run etests, *args
   end
   
+  module Reloader
+    def self.reload(mod)
+      source_files = mod.source_files
+
+      # Skip files that live in .gem and .rvm directories.
+      source_files.reject! do |source_file|
+        source_file =~ /\/\.gem\// ||
+        source_file =~ /\/\.rvm\//
+      end
+
+      source_files.each do |source_file|
+        reload_file(source_file)
+      end
+    end
+
+    def self.reload_file(file)
+      r = load(file)
+      STDERR.puts("load #{file.inspect}: #{r ? "OK" : r.inspect}")
+      !!r
+    rescue LoadError
+      STDERR.puts "load #{file.inspect}: raised #{$!}"
+      false
+    end
+  end
+
   def reload
-    EtestReloader.reload(name)
+    Reloader.reload(self)
     self
   end
   
+  def source_files
+    public_instance_methods(false).
+      map do |method_name| instance_method(method_name) end.
+      map(&:source_location).compact.
+      map(&:first).
+      uniq.
+      sort
+  end
+
   #
   # returns all instances of a module
   def instances                                           #:nodoc:
